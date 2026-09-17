@@ -1,26 +1,25 @@
 # AETHER Electronics
 
-Source for the AETHER electronics storefront and business operations dashboard.
+A public electronics storefront (`/`) and a private business dashboard (`/app`) built with Vinext on Cloudflare Workers. Dashboard records live in Cloudflare D1.
 
-## What is here
+## Migration status
 
-- `/` — public storefront and local cart UI.
-- `/app` — business dashboard for products, sales, expenses, customers, suppliers, warranties, and automations.
-- `/api/data` and `/api/records` — dashboard API backed by Cloudflare D1.
+The project is configured for the new `aether-production` D1 database in `wrangler.jsonc`. The dashboard and its API now require a **verified Cloudflare Access JWT** and an email on `ADMIN_EMAILS`. Missing or invalid configuration denies access. The public storefront does not require a login.
 
-## Current platform dependencies
+The new D1 database is separate from the database at the existing ChatGPT Sites deployment. Its existing customer, sales, and supplier records are **not** in this public repository. Keep the old site online until those records are migrated and checked.
 
-This is a source export of the ChatGPT Sites version. **It is not yet ready for a working Render or Vercel deployment.**
+## Configure before deployment
 
-- The project uses Vinext on Cloudflare Workers rather than a standard Next.js Node server. `npm run build` produces a Cloudflare Worker; `npm start` uses Wrangler locally.
-- `db/index.ts` imports `cloudflare:workers` and expects a D1 binding named `DB`. The schema and migration are in `db/` and `drizzle/`. Data already stored in the live Sites database is **not** in this repository.
-- `/app` and the dashboard APIs use `app/chatgpt-auth.ts` and dispatch-provided ChatGPT identity headers. A new host needs its own authentication and server-side authorization before the dashboard can be used. Do not replace this with a client-only password or trust user-supplied identity headers.
-- The storefront currently contains sample products, category counts, prices, and marketing claims. The WhatsApp link is a placeholder (`2348000000000`); verify contact details and checkout before accepting orders.
+1. In Cloudflare Zero Trust, create an Access self-hosted application for the final AETHER domain, with policies covering `/app*` and `/api/*`. Allow only the intended administrators. Cloudflare Access must protect those routes at the edge as well as the JWT verification in the app.
+2. Set these Worker variables in Cloudflare (never commit credentials or personal data):
+   - `ACCESS_TEAM_DOMAIN`: your full team domain, such as `team.cloudflareaccess.com`.
+   - `ACCESS_AUD`: the Access application's application audience (AUD) tag.
+   - `ADMIN_EMAILS`: comma-separated email addresses permitted to use the dashboard.
+3. Bind D1 as `DB`. The database ID is already in `wrangler.jsonc`. Apply `drizzle/0000_gigantic_hardball.sql` to the empty D1 database once, then separately migrate the existing data after checking the schema and row counts.
+4. Install with `corepack pnpm install --frozen-lockfile` and build with `corepack pnpm build`. Deploy the built Worker to your Cloudflare account only after Access and D1 are configured.
 
-For a standalone deployment, migrate the runtime, database and authentication together, then test product management, the cart, checkout, and the dashboard on the new host. The existing public Sites deployment remains separate.
+The `wrangler.jsonc` file uses the D1 ID supplied for AETHER. Set `CLOUDFLARE_ACCOUNT_ID` in your own environment when deploying; do not place an API token in this repository. Production deployment and data migration have not yet been performed.
 
-## Local development
+## Storefront launch checks
 
-Requires Node.js >=22.13.0 and pnpm 11.25.0. Install with `corepack enable && pnpm install --frozen-lockfile`, then run `pnpm dev`. This starts Vinext with local mock authentication and a local D1 simulation. The local D1 schema may need the SQL in `drizzle/0000_gigantic_hardball.sql` applied before dashboard data operations work.
-
-No production credentials or database contents are included.
+The public storefront currently has sample products, prices, category counts, and marketing claims. The WhatsApp number (`2348000000000`) is a placeholder, and checkout has not been verified for real orders. Replace and verify these details before accepting purchases.
