@@ -1,0 +1,13 @@
+{
+  "name": "aether-electronics",
+  "main": "vinext/server/fetch-handler",
+  "compatibility_date": "2026-09-17",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "aether-production",
+      "database_id": "1972f031-8bcb-4e1f-9664-a43320653f6f"
+    }
+  ]
+}
