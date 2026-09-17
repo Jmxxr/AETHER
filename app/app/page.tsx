@@ -1,0 +1,1 @@
+import {requireChatGPTUser} from "../chatgpt-auth";import BusinessApp from "./business-app";export const dynamic="force-dynamic";export default async function Page(){const user=await requireChatGPTUser("/app");return <BusinessApp userName={user.name||user.email||"Owner"}/>}
